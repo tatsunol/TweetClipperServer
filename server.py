@@ -29,6 +29,14 @@ __style = """
 		padding: 4px;
         font-size: 1.2rem;
 	}
+    .QuoteTweet {
+        background: #eeeeee;
+        border : solid 1px #090909;
+		padding: 16px;
+		margin: 16px;
+		border-radius: 5px;
+		box-shadow: 0 2px 5px #ccc;
+    }
 </style>
 """
 
@@ -106,7 +114,6 @@ def get_tweet_html(tweet_id):
         new_html += title.prettify()
     new_html += __style
     new_html += "</head>"
-
     new_html += "<body>"
 
     main = soup.find(attrs={"role":"main"})
