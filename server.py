@@ -122,12 +122,14 @@ def get_tweet_html(tweet_id):
 
     url = "https://twitter.com/wonosatoru/status/{}".format(tweet_id)
 
+    new_html += '<div class="main">'
     new_html += "<a href={}>{}</a>".format(url, url)
 
     main = soup.find(attrs={"role":"main"})
     if main is not None:
         new_html += main.prettify()
 
+    new_html += "</div>"
     new_html += "</body>"
     new_html += "</html>"
 
