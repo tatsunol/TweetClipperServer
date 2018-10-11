@@ -107,6 +107,10 @@ def get_tweet_html(tweet_id):
     if follow_bar is not None:
         follow_bar.extract()
 
+    avatar_row = soup.find(attrs={"class": "avatar-row"})
+    if avatar_row is not None:
+        avatar_row.extract()
+
     new_html = "<html lang='ja'>"
     title = soup.find("title")
     new_html += "<head>"
@@ -115,6 +119,10 @@ def get_tweet_html(tweet_id):
     new_html += __style
     new_html += "</head>"
     new_html += "<body>"
+
+    url = "https://twitter.com/wonosatoru/status/{}".format(tweet_id)
+
+    new_html += "<a href={}>{}</a>".format(url, url)
 
     main = soup.find(attrs={"role":"main"})
     if main is not None:
