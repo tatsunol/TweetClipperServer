@@ -120,7 +120,7 @@ def get_tweet_html(tweet_id):
     new_html += "</head>"
     new_html += "<body>"
 
-    url = "https://twitter.com/wonosatoru/status/{}".format(tweet_id)
+    url = "https://twitter.com/i/status/{}".format(tweet_id)
 
     new_html += "<a href={}>{}</a>".format(url, url)
 
