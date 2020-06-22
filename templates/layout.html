@@ -1,0 +1,25 @@
+<html lang='ja'>
+
+<head>
+	<title>{{name}}さんのツイート：{{text}}</title>
+	<style>
+		.tweet {
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+		}
+		.user-icon {
+		}
+		.tweet-content {
+			display: inline-flex;
+			flex-direction: column;
+			padding-left: 32px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Tweet</h1>
+	{% block tweet %}
+	{% endblock %}
+</body>
+</html>

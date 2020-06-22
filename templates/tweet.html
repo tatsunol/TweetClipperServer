@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block tweet %}
+    <div class="tweet">
+        <div class="user-icon">
+            <img  src="{{profile_image_url}}" width="128px" height="128px">
+        </div>
+
+        <div class="tweet-content">
+            <h2>{{name}}@{{screen_name}}</h2>
+            <p>{{text}}></p>
+            <p>{{created_at}}</p>
+        </div>
+    </div>
+{% endblock %}

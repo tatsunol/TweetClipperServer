@@ -1,139 +1,86 @@
 # -*- coding: utf-8
+import toml
 import requests
-from bs4 import BeautifulSoup
-from flask import Flask
+import os
+from flask import Flask, render_template
 from flask import session, abort
+from filters import twitter
+import json
+
+from requests_oauthlib import OAuth1Session
+from fake_useragent import UserAgent
 
 app = Flask(__name__)
-__style = """
-<style>
-    * {
-        padding: 0;
-        margin: 0;
-    }
-	li {
-		list-style-type: none;
-	}
-    .AdaptiveMedia-photoContainer  {
-        padding: 8px;
-    }
-	.tweet {
-		background: #eeeeee;
-		padding: 16px;
-		margin: 16px;
-		border-radius: 5px;
-		box-shadow: 0 2px 5px #ccc;
-	}
-	.tweet-text {
-		background: #efefef;
-		padding: 4px;
-        font-size: 1.2rem;
-	}
-    .QuoteTweet {
-        background: #eeeeee;
-        border : solid 1px #090909;
-		padding: 16px;
-		margin: 16px;
-		border-radius: 5px;
-		box-shadow: 0 2px 5px #ccc;
-    }
-</style>
-"""
 
+keys = toml.load(open(".keys"))
+print(keys)
 
 @app.route("/tweet/<int:tweet_id>", methods=["GET"])
 def tweet(tweet_id):
+
+    session = OAuth1Session(keys['CK'], keys['CS'], keys['AT'], keys['ATS'])
+
+    end_point = "https://api.twitter.com/1.1/statuses/show.json"
+    # end_point = "https://api.twitter.com/1.1/followers/ids.json"
+
+
+    get_params = {
+        "id": tweet_id,
+        "tweet_mode": "extended"
+    }
+    headers = {
+        "content-type": "application/json"
+    }
+    response = session.get(end_point, params=get_params, headers=headers)
+    print(response.encoding)
+    #data = json.loads(response.text)
+    # json.dump(data, open("{}.json".format(tweet_id), 'w'), indent=4, ensure_ascii=False)
+
+#     html = tweet_to_html(response.json())
+# 
+#     return html
+# 
+# def tweet_to_html(tweet):
+    tweet = response.json()
+
+    print(tweet)
+
+    user = tweet['user']
+    contents = {
+        'name': user['name'],
+        'screen_name': user['screen_name'],
+        'text': tweet['full_text'],
+        'profile_image_url': user['profile_image_url'],
+        'created_at': tweet['created_at']
+    }
+
+    return render_template('tweet.html', **contents)
+
+
+
+
+
+def old(tweet_id):
     if not isinstance(tweet_id, int):
         abort(400)
 
-    tweet_html = get_tweet_html(tweet_id)
-    return tweet_html
+    ua = UserAgent()
+    ua.chrome
 
-def get_tweet_html(tweet_id):
     tweet_url = "https://twitter.com/i/status/{0:d}".format(tweet_id)
+    print(ua.chrome)
+    ua_t = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
+    response = requests.get(tweet_url, headers = {'User-Agent': ua_t})
 
-    response = requests.get(tweet_url)
+    print(os.environ)
+
 
     if response.status_code != 200:
         abort(response.status_code)
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    filtered_html = twitter.filter(response.text)
 
-    metas = soup.find_all("meta")
-    for meta in metas:
-        meta.extract()
-
-    scripts = soup.find_all("script")
-    for script in scripts:
-        script.extract()
-
-    imgs = soup.find_all("img")
-    for img in imgs:
-        img["style"] = ""
-
-    buttons = soup.find_all("button")
-    for button in buttons:
-        button.extract()
-    
-    links = soup.find_all("link")
-    for link in links:
-        link.extract()
-
-    alinks = soup.find_all("a")
-    for alink in alinks:
-        alink.unwrap()
-
-    dismiss_modules = soup.find_all(attrs={"class": "dismiss-module"})
-    for dismiss_module in dismiss_modules:
-        dismiss_module.extract()
-
-    footer = soup.find(attrs={"class":"stream-footer"})
-    if footer is not None:
-        footer.extract()
-
-    action = soup.find(attrs={"ProfileTweet-action"})
-    if action is not None:
-        action.extract()
-
-    sfc = soup.find(attrs={"class": "stream-fail-container"})
-    if sfc is not None:
-        sfc.extract()
-
-    adms = soup.find(attrs={"class": "AdaptiveMedia-singlePhoto"})
-    if adms is not None:
-        adms.unwrap()
-
-    follow_bar = soup.find(attrs={"class": "follow-bar"})
-    if follow_bar is not None:
-        follow_bar.extract()
-
-    avatar_row = soup.find(attrs={"class": "avatar-row"})
-    if avatar_row is not None:
-        avatar_row.extract()
-
-    new_html = "<html lang='ja'>"
-    title = soup.find("title")
-    new_html += "<head>"
-    if title is not None:
-        new_html += title.prettify()
-    new_html += __style
-    new_html += "</head>"
-    new_html += "<body>"
-
-    url = "https://twitter.com/i/status/{}".format(tweet_id)
-
-    new_html += '<div class="main">'
-    new_html += "<a href={}>{}</a>".format(url, url)
-
-    main = soup.find(attrs={"role":"main"})
-    if main is not None:
-        new_html += main.prettify()
-
-    new_html += "</div>"
-    new_html += "</body>"
-    new_html += "</html>"
-
-    return new_html
+    return filtered_html
 
 if __name__=="__main__":
     app.debug=True
