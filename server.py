@@ -4,11 +4,11 @@ import requests
 import os
 from flask import Flask, render_template
 from flask import session, abort
-from filters import twitter
 import json
 
 from requests_oauthlib import OAuth1Session
 from fake_useragent import UserAgent
+from collections import deque
 
 app = Flask(__name__)
 
@@ -19,62 +19,64 @@ print(keys)
 def tweet(tweet_id):
 
     session = OAuth1Session(keys['CK'], keys['CS'], keys['AT'], keys['ATS'])
-
     end_point = "https://api.twitter.com/1.1/statuses/show.json"
-    # end_point = "https://api.twitter.com/1.1/followers/ids.json"
-
-
-    get_params = {
+    params = {
         "id": tweet_id,
         "tweet_mode": "extended"
     }
     headers = {
         "content-type": "application/json"
     }
-    response = session.get(end_point, params=get_params, headers=headers)
-    print(response.encoding)
-    #data = json.loads(response.text)
-    # json.dump(data, open("{}.json".format(tweet_id), 'w'), indent=4, ensure_ascii=False)
+    response = session.get(end_point, params=params, headers=headers)
 
-#     html = tweet_to_html(response.json())
-# 
-#     return html
-# 
-# def tweet_to_html(tweet):
     tweet = response.json()
-    with open("{}.json".format(tweet_id), 'w') as f:
-        json.dump(tweet, f, ensure_ascii=False, indent=4)
+    if app.debug:
+        with open("{}.json".format(tweet_id), 'w') as f:
+            json.dump(tweet, f, ensure_ascii=False, indent=4)
 
+    tweet['tweets'] = get_self_reply_trees(session, tweet)
 
-    tweet['datetime'] = tweet['created_at'].split("+")[0]
+    for t in tweet['tweets']:
+        t['datetime'] = tweet['created_at'].split("+")[0]
 
     return render_template('layout.html', **tweet)
 
 
+def get_self_reply_trees(session, target_tweet):
 
+    query = "from:{} to:{}".format(target_tweet['user']['screen_name'], target_tweet['user']['screen_name'])
+    end_point = "https://api.twitter.com/1.1/search/tweets.json"
+    params = {
+        "q": query,
+        "since_id" : target_tweet['id'],
+        "tweet_mode": "extended",
+        "include_entities": True
+    }
+    headers = {
+        "content-type": "application/json"
+    }
+    response = session.get(end_point, params=params, headers=headers)
+    all_replies = response.json()
 
+    if app.debug:
+        with open("{}_replies.json".format(target_tweet['id']), 'w') as f:
+            json.dump(all_replies, f, ensure_ascii=False, indent=4)
 
-def old(tweet_id):
-    if not isinstance(tweet_id, int):
-        abort(400)
+    # Get Self Reply List from replies
+    self_reply_tweets = [ target_tweet ]
+    target_id_q= deque([target_tweet['id']])
+    while target_id_q:
+        target_id = target_id_q.popleft()
 
-    ua = UserAgent()
-    ua.chrome
+        # Target Tweet宛てのリプライを抽出
+        matched_tweets = [ tweet for tweet in all_replies['statuses'] if tweet['in_reply_to_status_id'] == target_id]
+        self_reply_tweets += matched_tweets
+        # リプライのIDをTarget Tweetに
+        matched_tweets_ids = [ tweet['id'] for tweet in matched_tweets]
+        target_id_q.extend(matched_tweets_ids)
 
-    tweet_url = "https://twitter.com/i/status/{0:d}".format(tweet_id)
-    print(ua.chrome)
-    ua_t = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
-    response = requests.get(tweet_url, headers = {'User-Agent': ua_t})
+    return self_reply_tweets
 
-    print(os.environ)
-
-
-    if response.status_code != 200:
-        abort(response.status_code)
-
-    filtered_html = twitter.filter(response.text)
-
-    return filtered_html
 
 if __name__=="__main__":
     app.debug=True

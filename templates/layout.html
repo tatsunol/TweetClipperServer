@@ -5,17 +5,20 @@
 		.account {
 			display: flex;
 		}
+		.account img {
+			padding: 8px;
+		}
 		.account h2 {
 			font-weight: bold;
 		}
 		.account p {
 			font-size: 0.8rem;
 		}
-		.tweets {
+		.main {
 			width: 900px;
 			margin:16px auto 16px auto;
 		}
-		.tweet-box {
+		.tweets-box {
 		    padding: 0.5em 1em;
 		    margin: 2em 0;
 		    color: #5d627b;
@@ -23,13 +26,19 @@
 		    border-top: solid 5px #5d627b;
 		    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
 		}
-		.tweet-content {
-			display: inline-flex;
+		.tweets {
+			display: flex;
 			flex-direction: column;
 			padding-left: 32px;
+			padding-right: 32px;
+		}
+		.tweet {
+			margin-bottom: 16px;
+
 		}
 		.medias {
 			display: flex;
+			flex-wrap: wrap;
 		}
 		.medias img {
 			max-height: 300px;
@@ -51,9 +60,9 @@
 	</style>
 </head>
 <body>
-	<div class="tweets">
+	<div class="main">
 		<div class="account">
-			<div class="account-icon">
+			<div>
  	           <img  src="{{user.profile_image_url}}" width="128px" height="128px">
 			</div>
 			<div>
@@ -61,34 +70,38 @@
 				<p>{{user.description}}</p>
 			</div>
 		</div>
-        <div class="tweet-content. tweet-box">
-			<p>{{full_text}}</p>
+        <div class="tweets tweets-box">
+			{% for tweet in tweets %}
+			<div class="tweet">
+				<p>{{tweet.full_text}}</p>
 
-			{% if entities %}
-				{% if entities.urls %}
-				<div class="urls">
-					{% for url in entities.urls %}
-					<a href="{{url.expanded_url}}">{{url.expanded_url}}</a>
+				{% if tweet.entities %}
+					{% if tweet.entities.urls %}
+					<div class="urls">
+						{% for url in tweet.entities.urls %}
+						<a href="{{url.expanded_url}}">{{url.expanded_url}}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+
+				{% endif %}
+			
+				{% if tweet.extended_entities %}
+				<div class="medias">
+					{% for media in tweet.extended_entities.media %}
+					<div>
+						<img src="{{media.media_url}}" />
+					</div>
 					{% endfor %}
 				</div>
 				{% endif %}
 
-			{% endif %}
-			
-			{% if extended_entities %}
-			<div class="medias">
-				{% for media in extended_entities.media %}
-				<div>
-					<img src="{{media.media_url}}" />
+				<div class="tweet-footer">
+   	         	<p>{{tweet.datetime}} / Fav: {{tweet.favorite_count}} / RT: {{tweet.retweet_count}}</p>
+					<a href="https://twitter.com/x/status/{{id}}">{{id}}</a>
 				</div>
-				{% endfor %}
 			</div>
-			{% endif %}
-
-			<div class="tweet-footer">
-            	<p>{{datetime}} / Fav: {{favorite_count}} / RT: {{retweet_count}}</p>
-				<a href="https://twitter.com/x/status/{{id}}">{{id}}</a>
-			</div>
+			{% endfor %}
         </div>
     </div>
 </body>
