@@ -42,19 +42,13 @@ def tweet(tweet_id):
 # 
 # def tweet_to_html(tweet):
     tweet = response.json()
+    with open("{}.json".format(tweet_id), 'w') as f:
+        json.dump(tweet, f, ensure_ascii=False, indent=4)
 
-    print(tweet)
 
-    user = tweet['user']
-    contents = {
-        'name': user['name'],
-        'screen_name': user['screen_name'],
-        'text': tweet['full_text'],
-        'profile_image_url': user['profile_image_url'],
-        'created_at': tweet['created_at']
-    }
+    tweet['datetime'] = tweet['created_at'].split("+")[0]
 
-    return render_template('tweet.html', **contents)
+    return render_template('layout.html', **tweet)
 
 
 

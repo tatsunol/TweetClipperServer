@@ -141,3 +141,4 @@ cython_debug/
 .vscode
 __pycache
 .keys
+*.json
