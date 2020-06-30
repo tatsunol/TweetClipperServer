@@ -1,48 +1,59 @@
 <html lang='ja'>
+
 <head>
 	<title>{{user.name}}さんのツイート：{{full_text}}</title>
 	<style>
 		.account {
 			display: flex;
 		}
+
 		.account img {
 			padding: 8px;
 		}
+
 		.account h2 {
 			font-weight: bold;
 		}
+
 		.account p {
 			font-size: 0.8rem;
 		}
+
 		.main {
 			width: 900px;
-			margin:16px auto 16px auto;
+			margin: 16px auto 16px auto;
 		}
+
 		.tweets-box {
-		    padding: 0.5em 1em;
-		    margin: 2em 0;
-		    color: #5d627b;
-		    background: white;
-		    border-top: solid 5px #5d627b;
-		    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
+			padding: 0.5em 1em;
+			margin: 2em 0;
+			color: #5d627b;
+			background: white;
+			border-top: solid 5px #5d627b;
+			box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
 		}
+
 		.tweets {
 			display: flex;
 			flex-direction: column;
 			padding-left: 32px;
 			padding-right: 32px;
 		}
+
 		.tweet {
 			margin-bottom: 16px;
 
 		}
+
 		.medias {
 			display: flex;
 			flex-wrap: wrap;
 		}
+
 		.medias img {
 			max-height: 300px;
 		}
+
 		.tweet-footer {
 			font-size: small;
 			display: flex;
@@ -50,42 +61,42 @@
 			align-items: center;
 			margin: 8px 0 8px 0;
 		}
+
 		.tweet-footer p {
 			margin: 0;
 		}
-		.tweet-footer a {
 
-		}
-
+		.tweet-footer a {}
 	</style>
 </head>
+
 <body>
 	<div class="main">
 		<div class="account">
 			<div>
- 	           <img  src="{{user.profile_image_url}}" width="128px" height="128px">
+				<img src="{{user.profile_image_url}}" width="128px" height="128px">
 			</div>
 			<div>
 				<h2>{{user.name}}@{{user.screen_name}} ({{user.id}})</h2>
 				<p>{{user.description}}</p>
 			</div>
 		</div>
-        <div class="tweets tweets-box">
+		<div class="tweets tweets-box">
 			{% for tweet in tweets %}
 			<div class="tweet">
 				<p>{{tweet.full_text}}</p>
 
 				{% if tweet.entities %}
-					{% if tweet.entities.urls %}
-					<div class="urls">
-						{% for url in tweet.entities.urls %}
-						<a href="{{url.expanded_url}}">{{url.expanded_url}}</a>
-						{% endfor %}
-					</div>
-					{% endif %}
+				{% if tweet.entities.urls %}
+				<div class="urls">
+					{% for url in tweet.entities.urls %}
+					<a href="{{url.expanded_url}}">{{url.expanded_url}}</a>
+					{% endfor %}
+				</div>
+				{% endif %}
 
 				{% endif %}
-			
+
 				{% if tweet.extended_entities %}
 				<div class="medias">
 					{% for media in tweet.extended_entities.media %}
@@ -97,12 +108,13 @@
 				{% endif %}
 
 				<div class="tweet-footer">
-   	         	<p>{{tweet.datetime}} / Fav: {{tweet.favorite_count}} / RT: {{tweet.retweet_count}}</p>
+					<p>{{tweet.datetime}} / Fav: {{tweet.favorite_count}} / RT: {{tweet.retweet_count}}</p>
 					<a href="https://twitter.com/x/status/{{id}}">{{id}}</a>
 				</div>
 			</div>
 			{% endfor %}
-        </div>
-    </div>
+		</div>
+	</div>
 </body>
+
 </html>

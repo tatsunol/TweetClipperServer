@@ -1,19 +1,19 @@
 # -*- coding: utf-8
-import toml
-import requests
 import os
+import json
+from collections import deque
+
 from flask import Flask, render_template
 from flask import session, abort
-import json
 
 from requests_oauthlib import OAuth1Session
-from fake_useragent import UserAgent
-from collections import deque
+import toml
+import requests
 
 app = Flask(__name__)
 
 keys = toml.load(open(".keys"))
-print(keys)
+
 
 @app.route("/tweet/<int:tweet_id>", methods=["GET"])
 def tweet(tweet_id):
@@ -29,17 +29,28 @@ def tweet(tweet_id):
     }
     response = session.get(end_point, params=params, headers=headers)
 
-    tweet = response.json()
-    if app.debug:
-        with open("{}.json".format(tweet_id), 'w') as f:
-            json.dump(tweet, f, ensure_ascii=False, indent=4)
+    if response.status_code == 200:
+        tweet = response.json()
 
-    tweet['tweets'] = get_self_reply_trees(session, tweet)
+        if app.debug:
+            with open("{}.json".format(tweet_id), 'w') as f:
+                json.dump(tweet, f, ensure_ascii=False, indent=4)
 
-    for t in tweet['tweets']:
-        t['datetime'] = tweet['created_at'].split("+")[0]
+        tweet['tweets'] = get_self_reply_trees(session, tweet)
 
-    return render_template('layout.html', **tweet)
+        for t in tweet['tweets']:
+            t['datetime'] = tweet['created_at'].split("+")[0]
+
+        return render_template('tweets.html', **tweet)
+
+    elif response.status_code == 429:
+        # API LIMIT ERROR
+        tweet_url = "https://twitter.com/x/status/{}".format(tweet_id)
+        return render_template('error.html', **{"url": tweet_url, "error": "api limit error"})
+
+    else:
+        tweet_url = "https://twitter.com/x/status/{}".format(tweet_id)
+        return render_template('error.html', **{"url": tweet_url, "error": "twitter returns {}".format(response.status_code)})
 
 
 def get_self_reply_trees(session, target_tweet):
@@ -61,6 +72,8 @@ def get_self_reply_trees(session, target_tweet):
     if app.debug:
         with open("{}_replies.json".format(target_tweet['id']), 'w') as f:
             json.dump(all_replies, f, ensure_ascii=False, indent=4)
+
+    # ToDo: target tweet自体がself-replyの場合は，そのreply先を最初のtarget_tweetにする
 
     # Get Self Reply List from replies
     self_reply_tweets = [ target_tweet ]
