@@ -12,13 +12,18 @@ import requests
 
 app = Flask(__name__)
 
-keys = toml.load(open(".keys"))
+if os.path.exists(".keys"):
+    keys = toml.load(open(".keys"))
+    os.environ['CK'] = keys['CK']
+    os.environ['CS'] = keys['CS']
+    os.environ['AT'] = keys['AT']
+    os.environ['ATS'] = keys['ATS']
 
 
 @app.route("/tweet/<int:tweet_id>", methods=["GET"])
 def tweet(tweet_id):
 
-    session = OAuth1Session(keys['CK'], keys['CS'], keys['AT'], keys['ATS'])
+    session = OAuth1Session(os.environ['CK'], os.environ['CS'], os.environ['AT'], os.environ['ATS'])
     end_point = "https://api.twitter.com/1.1/statuses/show.json"
     params = {
         "id": tweet_id,
