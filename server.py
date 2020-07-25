@@ -74,6 +74,7 @@ def get_self_reply_trees(session, target_tweet):
             json.dump(all_replies, f, ensure_ascii=False, indent=4)
 
     # ToDo: target tweet自体がself-replyの場合は，そのreply先を最初のtarget_tweetにする
+    # ToDo: 会話API
 
     # Get Self Reply List from replies
     self_reply_tweets = [ target_tweet ]
