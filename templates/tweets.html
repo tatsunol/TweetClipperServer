@@ -13,6 +13,7 @@
 
 		.account h2 {
 			font-weight: bold;
+			font-size: 1.0rem;
 		}
 
 		.account p {
@@ -27,7 +28,7 @@
 		.tweets-box {
 			padding: 0.5em 1em;
 			margin: 2em 0;
-			color: #5d627b;
+			color: #111;
 			background: white;
 			border-top: solid 5px #5d627b;
 			box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
@@ -42,7 +43,10 @@
 
 		.tweet {
 			margin-bottom: 16px;
-
+			font-size: small;
+		}
+		.tweet-text {
+			font-size: 1.6rem;
 		}
 
 		.medias {
@@ -84,7 +88,7 @@
 		<div class="tweets tweets-box">
 			{% for tweet in tweets %}
 			<div class="tweet">
-				<p>{{tweet.full_text}}</p>
+				<p class="tweet-text">{{tweet.full_text}}</p>
 
 				{% if tweet.entities %}
 				{% if tweet.entities.urls %}
