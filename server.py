@@ -2,6 +2,9 @@
 import os
 import json
 from collections import deque
+from datetime import datetime
+from datetime import timezone
+from datetime import timedelta
 
 from flask import Flask, render_template
 from flask import session, abort
@@ -9,6 +12,8 @@ from flask import session, abort
 from requests_oauthlib import OAuth1Session
 import toml
 import requests
+
+monthes = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May' ,'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 app = Flask(__name__)
 
@@ -44,7 +49,13 @@ def tweet(tweet_id):
         tweet['tweets'] = get_self_reply_trees(session, tweet)
 
         for t in tweet['tweets']:
-            t['datetime'] = tweet['created_at'].split("+")[0]
+            # created_at format => Sat Apr 11 13:25:05 +0000 2020
+            weekday, monthstr, day, times, tz, year = tweet['created_at'].split()
+            month = monthes.index(monthstr) + 1
+            hour, minute, second = times.split(":")
+            utc_datetime = datetime(int(year), int(month), int(day), int(hour), int(minute), int(second), tzinfo=timezone.utc)
+            asia_tokyo_datetime = utc_datetime.astimezone(timezone(timedelta(hours=9)))
+            t['datetime'] = asia_tokyo_datetime.strftime("%Y年%m月%d日 %H:%M:%S")
 
         return render_template('tweets.html', **tweet)
 
